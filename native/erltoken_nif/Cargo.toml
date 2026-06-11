@@ -1,6 +1,6 @@
 [package]
 name = "erltoken_nif"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "Apache-2.0"
 
@@ -10,4 +10,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 rustler = "0.36"
-tiktoken = "3.5.0"
+tiktoken = "3.5.1"
