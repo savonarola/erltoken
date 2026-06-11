@@ -1,5 +1,7 @@
 # erltoken
 
+[![CI](https://github.com/savonarola/erltoken/actions/workflows/ci.yml/badge.svg)](https://github.com/savonarola/erltoken/actions/workflows/ci.yml)
+
 Erlang token budgeting and cost estimation backed by the Rust `tiktoken` crate.
 
 Version: `0.1.4`
