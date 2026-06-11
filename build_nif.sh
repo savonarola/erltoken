@@ -2,6 +2,7 @@
 set -eu
 
 root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+app_name=erltoken
 
 cargo build --manifest-path "$root/native/erltoken_nif/Cargo.toml" --release
 
@@ -14,11 +15,13 @@ case "$(uname -s)" in
         ;;
 esac
 
-mkdir -p "$root/priv"
-cp "$lib" "$root/priv/erltoken_nif.so"
-
-if [ -n "${REBAR_BUILD_DIR:-}" ]; then
-    out_dir="$REBAR_BUILD_DIR/lib/erltoken/priv"
-    mkdir -p "$out_dir"
-    cp "$lib" "$out_dir/erltoken_nif.so"
+if [ "${REBAR_BARE_COMPILER_OUTPUT_DIR:-}" ]; then
+    priv_dir="$REBAR_BARE_COMPILER_OUTPUT_DIR/priv"
+elif [ "${REBAR_BUILD_DIR:-}" ]; then
+    priv_dir="$REBAR_BUILD_DIR/lib/$app_name/priv"
+else
+    priv_dir="$root/priv"
 fi
+
+mkdir -p "$priv_dir"
+cp "$lib" "$priv_dir/erltoken_nif.so"
