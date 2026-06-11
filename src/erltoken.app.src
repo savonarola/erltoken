@@ -2,6 +2,16 @@
   [{description, "Erlang token budgeting and cost estimation using tiktoken"},
   {vsn, "0.1.1"},
   {licenses, ["Apache-2.0"]},
+  {links, [{"GitHub", "https://github.com/savonarola/erltoken"}]},
+  {files, [
+      "LICENSE",
+      "README.md",
+      "build_nif.sh",
+      "rebar.config",
+      "src",
+      "native/erltoken_nif/Cargo.toml",
+      "native/erltoken_nif/src"
+  ]},
   {registered, []},
   {applications, [kernel, stdlib]},
   {env, []},
