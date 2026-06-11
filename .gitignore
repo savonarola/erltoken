@@ -1,4 +1,5 @@
 /_build/
+/doc/
 /priv/
 /native/erltoken_nif/Cargo.lock
 /native/erltoken_nif/target/
