@@ -1,0 +1,8 @@
+{application, erltoken,
+  [{description, "Erlang token budgeting and cost estimation using tiktoken"},
+  {vsn, "0.1.0"},
+  {licenses, ["Apache-2.0"]},
+  {registered, []},
+  {applications, [kernel, stdlib]},
+  {env, []},
+  {modules, [erltoken]}]}.

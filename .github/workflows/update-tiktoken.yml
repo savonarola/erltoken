@@ -1,0 +1,68 @@
+name: Update tiktoken
+
+on:
+  schedule:
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    name: Update Rust tiktoken Dependency
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Erlang and Rebar3
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: '28'
+          rebar3-version: '3'
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-edit and bump2version
+        run: |
+          cargo install cargo-edit --locked
+          python -m pip install --user bump2version
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Upgrade tiktoken dependency
+        run: |
+          cargo upgrade --manifest-path native/erltoken_nif/Cargo.toml --package tiktoken --compatible
+          cargo update --manifest-path native/erltoken_nif/Cargo.toml --package tiktoken
+
+      - name: Check for tiktoken update
+        id: tiktoken
+        run: |
+          if git diff --quiet -- native/erltoken_nif/Cargo.toml; then
+            echo "updated=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+            git diff -- native/erltoken_nif/Cargo.toml
+          fi
+
+      - name: Run tests
+        if: steps.tiktoken.outputs.updated == 'true'
+        run: rebar3 eunit
+
+      - name: Configure Git
+        if: steps.tiktoken.outputs.updated == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Patch bump and tag
+        if: steps.tiktoken.outputs.updated == 'true'
+        run: bump2version --allow-dirty patch
+
+      - name: Push bump commit and tag
+        if: steps.tiktoken.outputs.updated == 'true'
+        run: git push origin HEAD:${{ github.ref_name }} --follow-tags

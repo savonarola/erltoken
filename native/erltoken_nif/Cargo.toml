@@ -1,0 +1,13 @@
+[package]
+name = "erltoken_nif"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+
+[lib]
+name = "erltoken_nif"
+crate-type = ["cdylib"]
+
+[dependencies]
+rustler = "0.36"
+tiktoken = "3.5.0"
