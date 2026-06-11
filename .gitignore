@@ -1,6 +1,7 @@
 /_build/
 /doc/
-/priv/
+/priv/*
+!/priv/.gitkeep
 /native/erltoken_nif/Cargo.lock
 /native/erltoken_nif/target/
 rebar.lock

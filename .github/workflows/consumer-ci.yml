@@ -1,0 +1,94 @@
+name: Consumer CI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  mix-consumer:
+    name: Mix Consumer
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Set up Erlang, Elixir, and Rebar3
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: '28'
+          elixir-version: '1.19'
+          rebar3-version: '3'
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Bootstrap and compile Mix consumer
+        env:
+          ERLTOKEN_REPO: https://github.com/${{ github.repository }}.git
+          ERLTOKEN_REF: ${{ github.sha }}
+        run: |
+          mix new /tmp/erltoken_mix_consumer --app erltoken_mix_consumer
+          cd /tmp/erltoken_mix_consumer
+          cat > mix.exs <<EOF
+          defmodule ErltokenMixConsumer.MixProject do
+            use Mix.Project
+
+            def project do
+              [
+                app: :erltoken_mix_consumer,
+                version: "0.1.0",
+                elixir: "~> 1.19",
+                deps: deps()
+              ]
+            end
+
+            def application do
+              [extra_applications: [:logger]]
+            end
+
+            defp deps do
+              [
+                {:erltoken, git: "#{System.fetch_env!("ERLTOKEN_REPO")}", ref: "#{System.fetch_env!("ERLTOKEN_REF")}", manager: :rebar3}
+              ]
+            end
+          end
+          EOF
+          mix deps.get
+          mix compile
+
+  rebar-consumer:
+    name: Rebar Consumer
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Set up Erlang and Rebar3
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: '28'
+          rebar3-version: '3'
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Bootstrap and compile Rebar consumer
+        env:
+          ERLTOKEN_REPO: https://github.com/${{ github.repository }}.git
+          ERLTOKEN_REF: ${{ github.sha }}
+        run: |
+          cd /tmp
+          rebar3 new app erltoken_rebar_consumer
+          cd /tmp/erltoken_rebar_consumer
+          cat > rebar.config <<EOF
+          {erl_opts, [debug_info]}.
+          {deps, [
+              {erltoken, {git, "${ERLTOKEN_REPO}", {ref, "${ERLTOKEN_REF}"}}}
+          ]}.
+          EOF
+          rebar3 compile

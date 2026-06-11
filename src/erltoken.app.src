@@ -8,6 +8,7 @@
       "README.md",
       "build_nif.sh",
       "rebar.config",
+      "priv",
       "src",
       "native/erltoken_nif/Cargo.toml",
       "native/erltoken_nif/src"
