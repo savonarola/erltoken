@@ -1,6 +1,7 @@
 # erltoken
 
 [![CI](https://github.com/savonarola/erltoken/actions/workflows/ci.yml/badge.svg)](https://github.com/savonarola/erltoken/actions/workflows/ci.yml)
+![No Claude](https://img.shields.io/badge/%F0%9F%9A%AB_no-claude-red)
 
 Erlang token budgeting and cost estimation backed by the Rust `tiktoken` crate.
 
