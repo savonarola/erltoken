@@ -63,6 +63,20 @@ jobs:
         if: steps.tiktoken_rs.outputs.updated == 'true'
         run: bump2version --allow-dirty minor
 
+      - name: Resolve release tag
+        if: steps.tiktoken_rs.outputs.updated == 'true'
+        id: release
+        run: echo "tag=$(git describe --tags --abbrev=0 HEAD)" >> "$GITHUB_OUTPUT"
+
       - name: Push bump commit and tag
         if: steps.tiktoken_rs.outputs.updated == 'true'
         run: git push origin HEAD:${{ github.ref_name }} --follow-tags
+
+      - name: Trigger Hex publish
+        if: steps.tiktoken_rs.outputs.updated == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/${{ github.repository }}/dispatches \
+            -f event_type=publish-hex \
+            -f 'client_payload[tag]=${{ steps.release.outputs.tag }}'
