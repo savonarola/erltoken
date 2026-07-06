@@ -5,7 +5,7 @@
 
 Erlang token budgeting backed by the Rust `tiktoken-rs` crate.
 
-Version: `0.1.7`
+Version: `0.2.0`
 
 All string inputs and outputs are binaries.
 
