@@ -1,9 +1,10 @@
 # erltoken
 
+[![Hex.pm version](https://img.shields.io/hexpm/v/erltoken.svg)](https://hex.pm/packages/erltoken)
 [![CI](https://github.com/savonarola/erltoken/actions/workflows/ci.yml/badge.svg)](https://github.com/savonarola/erltoken/actions/workflows/ci.yml)
-![No Claude](https://img.shields.io/badge/%F0%9F%9A%AB_no-claude-red)
+![No Claude](https://img.shields.io/badge/%F0%9F%9A%AB_no-claude-green)
 
-Erlang token budgeting backed by the Rust `tiktoken-rs` crate.
+Erlang token budgeting backed by the Rust [`tiktoken-rs`](https://docs.rs/tiktoken-rs) crate.
 
 Version: `0.2.0`
 
