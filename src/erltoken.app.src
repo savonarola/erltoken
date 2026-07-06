@@ -1,5 +1,5 @@
 {application, erltoken,
-  [{description, "Erlang token budgeting and cost estimation using tiktoken"},
+  [{description, "Erlang token budgeting using tiktoken-rs"},
   {vsn, "0.1.7"},
   {licenses, ["Apache-2.0"]},
   {links, [{"GitHub", "https://github.com/savonarola/erltoken"}]},
@@ -10,6 +10,7 @@
       "rebar.config",
       "priv",
       "src",
+      "native/erltoken_nif/Cargo.lock",
       "native/erltoken_nif/Cargo.toml",
       "native/erltoken_nif/src"
   ]},

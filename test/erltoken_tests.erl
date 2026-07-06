@@ -42,9 +42,5 @@ trim_to_token_limit_test() ->
     ?assertEqual({ok, <<"hello">>}, erltoken:trim_to_token_limit(<<"cl100k_base">>, Text, 1)),
     ?assertEqual({ok, <<>>}, erltoken:trim_to_token_limit(<<"cl100k_base">>, Text, 0)).
 
-estimate_cost_usd_micro_test() ->
-    ?assertEqual({ok, 12500}, erltoken:estimate_cost_usd_micro(<<"gpt-4o">>, 1000, 1000)),
-    ?assertEqual({error, unknown_model}, erltoken:estimate_cost_usd_micro(<<"not-a-model">>, 1000, 1000)).
-
 unknown_encoding_test() ->
     ?assertEqual({error, unknown_encoding_or_model}, erltoken:count(<<"not-an-encoding">>, <<"hello">>)).

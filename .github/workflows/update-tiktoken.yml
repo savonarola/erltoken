@@ -1,4 +1,4 @@
-name: Update tiktoken
+name: Update tiktoken-rs
 
 on:
   schedule:
@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   update:
-    name: Update Rust tiktoken Dependency
+    name: Update Rust tiktoken-rs Dependency
     runs-on: ubuntu-latest
 
     steps:
@@ -34,35 +34,35 @@ jobs:
           python -m pip install --user bump2version
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-      - name: Upgrade tiktoken dependency
+      - name: Upgrade tiktoken-rs dependency
         run: |
-          cargo upgrade --manifest-path native/erltoken_nif/Cargo.toml --package tiktoken --compatible
-          cargo update --manifest-path native/erltoken_nif/Cargo.toml --package tiktoken
+          cargo upgrade --manifest-path native/erltoken_nif/Cargo.toml --package 'tiktoken-rs@>=0.11,<1.0' --compatible ignore --incompatible allow
+          cargo update --manifest-path native/erltoken_nif/Cargo.toml --package tiktoken-rs
 
-      - name: Check for tiktoken update
-        id: tiktoken
+      - name: Check for tiktoken-rs update
+        id: tiktoken_rs
         run: |
-          if git diff --quiet -- native/erltoken_nif/Cargo.toml; then
+          if git diff --quiet -- native/erltoken_nif/Cargo.toml native/erltoken_nif/Cargo.lock; then
             echo "updated=false" >> "$GITHUB_OUTPUT"
           else
             echo "updated=true" >> "$GITHUB_OUTPUT"
-            git diff -- native/erltoken_nif/Cargo.toml
+            git diff -- native/erltoken_nif/Cargo.toml native/erltoken_nif/Cargo.lock
           fi
 
       - name: Run tests
-        if: steps.tiktoken.outputs.updated == 'true'
+        if: steps.tiktoken_rs.outputs.updated == 'true'
         run: rebar3 eunit
 
       - name: Configure Git
-        if: steps.tiktoken.outputs.updated == 'true'
+        if: steps.tiktoken_rs.outputs.updated == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Patch bump and tag
-        if: steps.tiktoken.outputs.updated == 'true'
-        run: bump2version --allow-dirty patch
+      - name: Minor bump and tag
+        if: steps.tiktoken_rs.outputs.updated == 'true'
+        run: bump2version --allow-dirty minor
 
       - name: Push bump commit and tag
-        if: steps.tiktoken.outputs.updated == 'true'
+        if: steps.tiktoken_rs.outputs.updated == 'true'
         run: git push origin HEAD:${{ github.ref_name }} --follow-tags

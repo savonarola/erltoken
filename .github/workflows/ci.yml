@@ -34,7 +34,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             native/erltoken_nif/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('native/erltoken_nif/Cargo.toml') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('native/erltoken_nif/Cargo.toml', 'native/erltoken_nif/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
 

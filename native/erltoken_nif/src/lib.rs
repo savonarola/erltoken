@@ -1,5 +1,5 @@
 use rustler::{atoms, Binary, Encoder, Env, NewBinary, Term};
-use tiktoken::CoreBpe;
+use tiktoken_rs::{tokenizer::Tokenizer, CoreBPE};
 
 atoms! {
     ok,
@@ -23,17 +23,49 @@ fn binary_to_str<'a>(env: Env<'a>, bin: Binary<'a>) -> Result<&'a str, Term<'a>>
     std::str::from_utf8(bin.as_slice()).map_err(|_| invalid_utf8().encode(env))
 }
 
-fn resolve_encoding(name: &str) -> Option<&'static CoreBpe> {
-    tiktoken::get_encoding(name)
-        .or_else(|| tiktoken::model_to_encoding(name).and_then(tiktoken::get_encoding))
+fn tokenizer_name(tokenizer: Tokenizer) -> &'static str {
+    match tokenizer {
+        Tokenizer::O200kHarmony => "o200k_harmony",
+        Tokenizer::O200kBase => "o200k_base",
+        Tokenizer::Cl100kBase => "cl100k_base",
+        Tokenizer::P50kBase => "p50k_base",
+        Tokenizer::R50kBase => "r50k_base",
+        Tokenizer::P50kEdit => "p50k_edit",
+        Tokenizer::Gpt2 => "gpt2",
+    }
+}
+
+fn tokenizer_for_name(name: &str) -> Option<Tokenizer> {
+    match name {
+        "o200k_harmony" => Some(Tokenizer::O200kHarmony),
+        "o200k_base" => Some(Tokenizer::O200kBase),
+        "cl100k_base" => Some(Tokenizer::Cl100kBase),
+        "p50k_base" => Some(Tokenizer::P50kBase),
+        "r50k_base" => Some(Tokenizer::R50kBase),
+        "p50k_edit" => Some(Tokenizer::P50kEdit),
+        "gpt2" => Some(Tokenizer::Gpt2),
+        _ => tiktoken_rs::tokenizer::get_tokenizer(name),
+    }
+}
+
+fn resolve_encoding(name: &str) -> Option<&'static CoreBPE> {
+    tokenizer_for_name(name).and_then(|tokenizer| tiktoken_rs::bpe_for_tokenizer(tokenizer).ok())
 }
 
 #[rustler::nif]
 fn list_encodings_nif<'a>(env: Env<'a>) -> Term<'a> {
-    let items: Vec<Term<'a>> = tiktoken::list_encodings()
-        .iter()
-        .map(|name| binary_str_term(env, name))
-        .collect();
+    let items: Vec<Term<'a>> = [
+        "o200k_harmony",
+        "o200k_base",
+        "cl100k_base",
+        "p50k_base",
+        "r50k_base",
+        "p50k_edit",
+        "gpt2",
+    ]
+    .into_iter()
+    .map(|name| binary_str_term(env, name))
+    .collect();
     items.encode(env)
 }
 
@@ -44,8 +76,8 @@ fn encoding_for_model_nif<'a>(env: Env<'a>, model: Binary<'a>) -> Term<'a> {
         Err(reason) => return (error(), reason).encode(env),
     };
 
-    match tiktoken::model_to_encoding(model) {
-        Some(name) => (ok(), binary_str_term(env, name)).encode(env),
+    match tiktoken_rs::tokenizer::get_tokenizer(model) {
+        Some(tokenizer) => (ok(), binary_str_term(env, tokenizer_name(tokenizer))).encode(env),
         None => (error(), unknown_model()).encode(env),
     }
 }
@@ -62,7 +94,7 @@ fn count_nif<'a>(env: Env<'a>, name: Binary<'a>, text: Binary<'a>) -> Term<'a> {
     };
 
     match resolve_encoding(name) {
-        Some(encoding) => (ok(), encoding.count(text)).encode(env),
+        Some(encoding) => (ok(), encoding.count_ordinary(text)).encode(env),
         None => (error(), unknown_encoding_or_model()).encode(env),
     }
 }
@@ -73,7 +105,11 @@ fn encode_nif<'a>(env: Env<'a>, name: Binary<'a>, text: Binary<'a>) -> Term<'a> 
 }
 
 #[rustler::nif]
-fn encode_with_special_tokens_nif<'a>(env: Env<'a>, name: Binary<'a>, text: Binary<'a>) -> Term<'a> {
+fn encode_with_special_tokens_nif<'a>(
+    env: Env<'a>,
+    name: Binary<'a>,
+    text: Binary<'a>,
+) -> Term<'a> {
     encode_impl(env, name, text, true)
 }
 
@@ -92,7 +128,7 @@ fn encode_impl<'a>(env: Env<'a>, name: Binary<'a>, text: Binary<'a>, special: bo
             let tokens = if special {
                 encoding.encode_with_special_tokens(text)
             } else {
-                encoding.encode(text)
+                encoding.encode_ordinary(text)
             };
             (ok(), tokens).encode(env)
         }
@@ -108,29 +144,11 @@ fn decode_nif<'a>(env: Env<'a>, name: Binary<'a>, tokens: Vec<u32>) -> Term<'a> 
     };
 
     match resolve_encoding(name) {
-        Some(encoding) => (ok(), binary_term(env, &encoding.decode(&tokens))).encode(env),
+        Some(encoding) => match encoding.decode_bytes(&tokens) {
+            Ok(bytes) => (ok(), binary_term(env, &bytes)).encode(env),
+            Err(_) => (error(), unknown_encoding_or_model()).encode(env),
+        },
         None => (error(), unknown_encoding_or_model()).encode(env),
-    }
-}
-
-#[rustler::nif]
-fn estimate_cost_usd_micro_nif<'a>(
-    env: Env<'a>,
-    model: Binary<'a>,
-    input_tokens: u64,
-    output_tokens: u64,
-) -> Term<'a> {
-    let model = match binary_to_str(env, model) {
-        Ok(model) => model,
-        Err(reason) => return (error(), reason).encode(env),
-    };
-
-    match tiktoken::pricing::estimate_cost(model, input_tokens, output_tokens) {
-        Some(cost) => {
-            let micros = (cost * 1_000_000.0).round() as u64;
-            (ok(), micros).encode(env)
-        }
-        None => (error(), unknown_model()).encode(env),
     }
 }
 

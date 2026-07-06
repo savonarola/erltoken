@@ -11,8 +11,7 @@
     decode/2,
     fits/3,
     trim_to_token_limit/3,
-    remaining/3,
-    estimate_cost_usd_micro/3
+    remaining/3
 ]).
 
 -export([
@@ -21,8 +20,7 @@
     count_nif/2,
     encode_nif/2,
     encode_with_special_tokens_nif/2,
-    decode_nif/2,
-    estimate_cost_usd_micro_nif/3
+    decode_nif/2
 ]).
 
 -type name() :: binary().
@@ -88,13 +86,6 @@ remaining(Name, Text, ContextWindow) when is_binary(Name), is_binary(Text), is_i
         {error, _} = Error -> Error
     end.
 
--spec estimate_cost_usd_micro(binary(), non_neg_integer(), non_neg_integer()) ->
-    {ok, non_neg_integer()} | {error, term()}.
-estimate_cost_usd_micro(Model, InputTokens, OutputTokens)
-    when is_binary(Model), is_integer(InputTokens), InputTokens >= 0,
-         is_integer(OutputTokens), OutputTokens >= 0 ->
-    estimate_cost_usd_micro_nif(Model, InputTokens, OutputTokens).
-
 list_encodings_nif() ->
     erlang:nif_error(nif_not_loaded).
 
@@ -111,7 +102,4 @@ encode_with_special_tokens_nif(_Name, _Text) ->
     erlang:nif_error(nif_not_loaded).
 
 decode_nif(_Name, _Tokens) ->
-    erlang:nif_error(nif_not_loaded).
-
-estimate_cost_usd_micro_nif(_Model, _InputTokens, _OutputTokens) ->
     erlang:nif_error(nif_not_loaded).

@@ -3,7 +3,7 @@
 [![CI](https://github.com/savonarola/erltoken/actions/workflows/ci.yml/badge.svg)](https://github.com/savonarola/erltoken/actions/workflows/ci.yml)
 ![No Claude](https://img.shields.io/badge/%F0%9F%9A%AB_no-claude-red)
 
-Erlang token budgeting and cost estimation backed by the Rust `tiktoken` crate.
+Erlang token budgeting backed by the Rust `tiktoken-rs` crate.
 
 Version: `0.1.7`
 
@@ -39,12 +39,7 @@ rebar3 compile
 
 4> erltoken:trim_to_token_limit(<<"cl100k_base">>, <<"hello world">>, 1).
 {ok,<<"hello">>}
-
-5> erltoken:estimate_cost_usd_micro(<<"gpt-4o">>, 1000, 1000).
-{ok,12500}
 ```
-
-`estimate_cost_usd_micro/3` returns micro-USD. `12500` means `$0.012500`.
 
 ## API
 
@@ -57,7 +52,6 @@ rebar3 compile
 - `fits/3`
 - `remaining/3`
 - `trim_to_token_limit/3`
-- `estimate_cost_usd_micro/3`
 
 For token APIs, the first argument may be an encoding name such as `<<"cl100k_base">>` or a model name such as `<<"gpt-4o">>`.
 
